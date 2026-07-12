@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+installation_directory="$data_home/ugreen-nas-linux"
+wine_prefix="$installation_directory/prefix"
+application_executable="$installation_directory/app/UGREEN NAS.exe"
+
+if ! command -v wine >/dev/null 2>&1; then
+    printf 'Erreur : Wine est introuvable.\n' >&2
+    exit 1
+fi
+
+if [[ ! -f "$application_executable" ]]; then
+    printf 'Erreur : UGREEN NAS n’est pas installé.\n' >&2
+    printf 'Exécutable attendu : %s\n' "$application_executable" >&2
+    exit 1
+fi
+
+export WINEPREFIX="$wine_prefix"
+export ELECTRON_NO_ATTACH_CONSOLE=1
+export WINEDEBUG="${WINEDEBUG:--all}"
+
+exec wine "$application_executable" "$@"

@@ -1,0 +1,19 @@
+# Proprietary UGREEN files
+*.exe
+*.dll
+*.7z
+*.pak
+*.bin
+
+# Local test environments
+app64/
+extracted/
+installer/
+prefix/
+logs/
+
+# Build and editor files
+build/
+.dart_tool/
+.idea/
+.vscode/

@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+set -Eeuo pipefail
+
+data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+installation_directory="$data_home/ugreen-nas-linux"
+desktop_entry="$data_home/applications/io.github.thezupzup.UGREENNAS.desktop"
+
+user_bin_directory="$HOME/.local/bin"
+keep_prefix=false
+
+if [[ "${1:-}" == "--keep-prefix" ]]; then
+    keep_prefix=true
+fi
+
+wineserver -k >/dev/null 2>&1 || true
+
+if [[ "$keep_prefix" == true ]]; then
+    rm -rf "$installation_directory/app"
+    rm -f "$installation_directory/installation-info.txt"
+
+    printf 'Application supprimée. Le préfixe Wine a été conservé.\n'
+else
+    rm -rf "$installation_directory"
+
+    printf 'Application et préfixe Wine supprimés.\n'
+fi
+
+rm -f "$desktop_entry"
+rm -f "$user_bin_directory/ugreen-nas"
+rm -f "$user_bin_directory/ugreen-nas-uninstall"
+
+if command -v update-desktop-database >/dev/null 2>&1; then
+    update-desktop-database "$data_home/applications" >/dev/null 2>&1 || true
+fi
+
+printf 'Désinstallation terminée.\n'
