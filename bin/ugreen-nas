@@ -2,24 +2,38 @@
 
 set -Eeuo pipefail
 
-data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
-installation_directory="$data_home/ugreen-nas-linux"
-wine_prefix="$installation_directory/prefix"
-application_executable="$installation_directory/app/UGREEN NAS.exe"
+readonly data_home="${XDG_DATA_HOME:-$HOME/.local/share}"
+readonly state_home="${XDG_STATE_HOME:-$HOME/.local/state}"
 
-if ! command -v wine >/dev/null 2>&1; then
-    printf 'Erreur : Wine est introuvable.\n' >&2
-    exit 1
-fi
+readonly installation_directory="$data_home/ugreen-nas-linux"
+readonly wine_prefix="$installation_directory/prefix"
+readonly application_executable="$installation_directory/app/UGREEN NAS.exe"
 
-if [[ ! -f "$application_executable" ]]; then
-    printf 'Erreur : UGREEN NAS n’est pas installé.\n' >&2
-    printf 'Exécutable attendu : %s\n' "$application_executable" >&2
+readonly log_directory="$state_home/ugreen-nas-linux"
+readonly log_file="$log_directory/ugreen-nas.log"
+
+fail() {
+    printf 'Erreur : %s\n' "$1" >&2
     exit 1
-fi
+}
+
+command -v wine >/dev/null 2>&1 ||
+    fail "Wine est introuvable."
+
+[[ -f "$application_executable" ]] ||
+    fail "UGREEN NAS n’est pas installé."
+
+mkdir -p "$log_directory"
+
+# Les applications lancées depuis un menu graphique peuvent recevoir des
+# descripteurs standard fermés. Electron exige cependant des descripteurs
+# stdin, stdout et stderr valides.
+exec </dev/null
+exec >>"$log_file"
+exec 2>&1
 
 export WINEPREFIX="$wine_prefix"
 export ELECTRON_NO_ATTACH_CONSOLE=1
-export WINEDEBUG="${WINEDEBUG:--all}"
+export WINEDEBUG=-all
 
 exec wine "$application_executable" "$@"
